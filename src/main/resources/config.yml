@@ -29,3 +29,8 @@ combat-tag:
       - /ah
       - /auctionhouse
       - /homes
+
+
+explosive-disabler:
+  crystals: false
+  minecarts: false

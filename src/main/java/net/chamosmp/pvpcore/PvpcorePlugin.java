@@ -3,6 +3,7 @@ package net.chamosmp.pvpcore;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.chamosmp.pvpcore.commands.BaseCommandBrigadier;
 import net.chamosmp.pvpcore.listener.CombatListener;
+import net.chamosmp.pvpcore.listener.ExplodeListener;
 import net.chamosmp.pvpcore.listener.LeaveJoinListener;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
 import net.chamosmp.sqdlib.exceptions.CommandRegisterException;
@@ -22,6 +23,7 @@ public class PvpcorePlugin extends JavaPlugin {
         CombatTagManager tagManager = new CombatTagManager(this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(tagManager), this);
         Bukkit.getPluginManager().registerEvents(new LeaveJoinListener(tagManager, this), this);
+        Bukkit.getPluginManager().registerEvents(new ExplodeListener(this), this);
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             try {
