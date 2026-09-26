@@ -15,6 +15,9 @@ combat-tag:
   command-block:
     enabled: true
     match-entire-words: false # If enabled the entire command must match
+
+    blocked-message: "<red>You cannot run this command while on combat!"
+
     blocked-cmds:
       - /warp spawn
       - /home

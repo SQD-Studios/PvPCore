@@ -6,7 +6,7 @@ import net.chamosmp.pvpcore.model.TaggedPlayer;
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import net.chamosmp.sqdlib.paper.util.SchedulerUtil;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -70,6 +70,12 @@ public class CombatTagManager {
             // and not reschedule nor send the action bar again
             if (taggedPlayer.inCombatFor() == 0) {
                 tags.remove(taggedPlayer.player().getUniqueId());
+
+                String notInCombat = plugin.getConfig().getString("combat-tag.combat-expired-message");
+                if (notInCombat != null) {
+                    taggedPlayer.player().sendMessage(ColorUtil.parse(player, notInCombat));
+                }
+
                 return;
             }
 
@@ -88,7 +94,7 @@ public class CombatTagManager {
         return tags.containsKey(player.getUniqueId());
     }
 
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerDeathEvent event) {
         TaggedPlayer taggedPlayer = tags.get(event.getPlayer().getUniqueId());
         if (taggedPlayer != null) {
             tags.remove(taggedPlayer.player().getUniqueId());

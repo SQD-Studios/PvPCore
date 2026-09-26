@@ -20,7 +20,7 @@ public class PvpcorePlugin extends JavaPlugin {
         ConfigUtil.loadOrAdapt(this, "config.yml");
 
         CombatTagManager tagManager = new CombatTagManager(this);
-        Bukkit.getPluginManager().registerEvents(new CombatListener(this, tagManager), this);
+        Bukkit.getPluginManager().registerEvents(new CombatListener(tagManager), this);
         Bukkit.getPluginManager().registerEvents(new LeaveJoinListener(tagManager, this), this);
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
