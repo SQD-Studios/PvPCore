@@ -39,11 +39,13 @@ public record TaggedPlayer(
         return new TaggedPlayer(this.player, inCombatWith, inCombatFor);
     }
 
-    public TaggedPlayer increaseInCombat(int amount) {
-        return new TaggedPlayer(player, inCombatWith, inCombatFor + amount);
+    public TaggedPlayer increaseInCombat(int amount, Plugin plugin) {
+        TaggedPlayer taggedPlayer = new TaggedPlayer(player, inCombatWith, inCombatFor + amount);
+        taggedPlayer.sendActionBar(plugin);
+        return taggedPlayer;
     }
 
     public TaggedPlayer increaseInCombat(Plugin plugin) {
-        return increaseInCombat(plugin.getConfig().getInt("combat-tag.on-additional-combat"));
+        return increaseInCombat(plugin.getConfig().getInt("combat-tag.on-additional-combat"), plugin);
     }
 }
