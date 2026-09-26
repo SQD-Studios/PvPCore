@@ -1,13 +1,12 @@
-name: "PaperPluginTemplate"
+name: "PvPCore"
 version: "${version}"
 authors:
   - SQD Studios
 
-main: net.chamosmp.PaperPluginTemplate
-#Loader: net.chamosmp.
+main: net.chamosmp.pvpcore.PvpcorePlugin
 
 api-version: "1.21.11"
-website: https://github.com/SQD-Studios/paper-plugin-template
+website: https://github.com/SQD-Studios/pvpcore
 
 folia-supported: true
 
