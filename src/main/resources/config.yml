@@ -6,7 +6,7 @@ combat-tag:
   kill-on-quit: true
   combat-tagged-message: "<aqua>You are now in combat with %otherPlayer%"
   combat-expired-message: "<green>You are no longer in combat"
-  in-combat-action-bar: <aqua>You are in combat (<dark_aqua>%time_left%</dark_aqua)
+  in-combat-action-bar: <aqua>You are in combat (<dark_aqua>%time_left%</dark_aqua>)
 
   # If it is enabled, a player's combat status ends the moment the opponent who tagged them leaves or dies.
   # If several players tagged them, it ends once the last of those opponents is gone.
