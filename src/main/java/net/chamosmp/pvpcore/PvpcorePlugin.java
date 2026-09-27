@@ -12,16 +12,18 @@ import net.chamosmp.sqdlib.paper.util.LoggerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
+
 public class PvpcorePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         new LoggerUtil("<dark_purple>PvPCore<white>| ");
 
         getDataFolder().mkdirs();
-        ConfigUtil.loadOrAdapt(this, "config.yml");
+        ConfigUtil.loadOrAdapt(this, "config.yml", List.of("stat-changer.items."));
 
         CombatTagManager tagManager = new CombatTagManager(this);
-        Bukkit.getPluginManager().registerEvents(new CombatListener(tagManager), this);
+        Bukkit.getPluginManager().registerEvents(new CombatListener(tagManager, this), this);
         Bukkit.getPluginManager().registerEvents(new LeaveJoinListener(tagManager, this), this);
         Bukkit.getPluginManager().registerEvents(new ExplodeListener(this), this);
 

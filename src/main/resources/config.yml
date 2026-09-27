@@ -34,3 +34,17 @@ combat-tag:
 explosive-disabler:
   crystals: false
   minecarts: false
+
+
+stat-changer:
+  # WARNING - This buffs from the item that is in the main hand, so that means if a player is holding a sword to use a crystal, it'll buff it based on the sword.
+  # Currently, it also doesn't support specifying the level of the enchantment
+  enabled: false
+
+  items: # Add the items (or enchantments) you want to change the stats of.
+    diamond_sword:
+      type: BUFF # Buff or Nerf?
+      value: 20 # This means it will do +20 damage
+    sharpness:
+      type: buff
+      value: 10
