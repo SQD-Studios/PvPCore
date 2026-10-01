@@ -94,6 +94,10 @@ public class CombatTagManager {
         return tags.containsKey(player.getUniqueId());
     }
 
+    public TaggedPlayer getTaggedPlayer(Player player) {
+        return tags.get(player.getUniqueId());
+    }
+
     public void onPlayerQuit(PlayerDeathEvent event) {
         TaggedPlayer taggedPlayer = tags.get(event.getPlayer().getUniqueId());
         if (taggedPlayer != null) {

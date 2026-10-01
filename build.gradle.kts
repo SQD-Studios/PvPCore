@@ -38,6 +38,10 @@ dependencies {
 
 tasks {
     runServer {
+        downloadPlugins {
+            modrinth("lKEzGugV", "2.12.3")
+        }
+
         minecraftVersion("26.2")
     }
     runPaper.folia.registerTask()

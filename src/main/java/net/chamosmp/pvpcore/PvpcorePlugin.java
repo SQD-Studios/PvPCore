@@ -6,6 +6,7 @@ import net.chamosmp.pvpcore.listener.CombatListener;
 import net.chamosmp.pvpcore.listener.ExplodeListener;
 import net.chamosmp.pvpcore.listener.LeaveJoinListener;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
+import net.chamosmp.pvpcore.papi.PvpcoreExtension;
 import net.chamosmp.sqdlib.exceptions.command.CommandRegisterException;
 import net.chamosmp.sqdlib.paper.util.ConfigUtil;
 import net.chamosmp.sqdlib.paper.util.DebugLogger;
@@ -31,6 +32,11 @@ public class PvpcorePlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new LeaveJoinListener(tagManager, this), this);
         Bukkit.getPluginManager().registerEvents(new ExplodeListener(this), this);
         LoggerUtil.log(LogType.INFO, "Registered listeners");
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) { //
+            new PvpcoreExtension(this, tagManager).register();
+            LoggerUtil.log(LogType.INFO, "Registered Placeholders");
+        }
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             try {
