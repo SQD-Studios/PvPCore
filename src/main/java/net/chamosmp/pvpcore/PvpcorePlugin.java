@@ -6,8 +6,9 @@ import net.chamosmp.pvpcore.listener.CombatListener;
 import net.chamosmp.pvpcore.listener.ExplodeListener;
 import net.chamosmp.pvpcore.listener.LeaveJoinListener;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
-import net.chamosmp.sqdlib.exceptions.CommandRegisterException;
+import net.chamosmp.sqdlib.exceptions.command.CommandRegisterException;
 import net.chamosmp.sqdlib.paper.util.ConfigUtil;
+import net.chamosmp.sqdlib.paper.util.DebugLogger;
 import net.chamosmp.sqdlib.paper.util.LoggerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +19,7 @@ public class PvpcorePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         new LoggerUtil("<dark_purple>PvPCore<white>| ");
+        new DebugLogger(this);
 
         getDataFolder().mkdirs();
         ConfigUtil.loadOrAdapt(this, "config.yml", List.of("stat-changer.items."));

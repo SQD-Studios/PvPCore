@@ -2,6 +2,8 @@ package net.chamosmp.pvpcore.listener;
 
 import net.chamosmp.pvpcore.PvpcorePlugin;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
+import net.chamosmp.sqdlib.paper.util.DebugLogger;
+import net.chamosmp.sqdlib.util.log.LogType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -42,6 +44,7 @@ public class CombatListener implements Listener {
                     : null;
             if (item == null) return;
 
+            Double originalDamage = event.getDamage();
             AtomicReference<Double> damage = new AtomicReference<>(event.getDamage());
             ConfigurationSection itemHeldByEntityInConfig = plugin.getConfig().getConfigurationSection("stat-changer.items." + item.getType().toString().toLowerCase());
             if (itemHeldByEntityInConfig != null) {
@@ -67,6 +70,9 @@ public class CombatListener implements Listener {
                 }
             });
             event.setDamage(damage.get());
+
+            DebugLogger.log(LogType.INFO, "Final Damage: " + event.getDamage());
+            DebugLogger.log(LogType.INFO, "Original Damage: " + originalDamage);
         }
     }
 }

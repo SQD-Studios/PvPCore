@@ -44,7 +44,12 @@ stat-changer:
   items: # Add the items (or enchantments) you want to change the stats of.
     diamond_sword:
       type: BUFF # Buff or Nerf?
+
+      # If you can't decide what damage you want it to do, you can turn on debug,
+      # and it'll print out the original and final damage
       value: 20 # This means it will do +20 damage
     sharpness:
       type: buff
       value: 10
+
+debug: false
