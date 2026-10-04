@@ -52,4 +52,13 @@ stat-changer:
       type: buff
       value: 10
 
+# This requires combat tag to be enabled
+# Blocks players in combat from entering certain regions
+# Requires WorldEdit
+safe-zones:
+  regions:
+
+  block-message: "<red>You cannot go there while in combat!"
+  in-safe-zone: "<red>You cannot get people into combat inside the safezone"
+
 debug: false

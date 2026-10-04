@@ -24,6 +24,7 @@ repositories {
         name = "PlaceholderAPI"
         url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     }
+    maven("https://maven.enginehub.org/repo/")
 }
 
 dependencies {
@@ -34,12 +35,14 @@ dependencies {
     annotationProcessor("net.strokkur.commands:processor-paper:2.3.0")
 
     compileOnly("me.clip:placeholderapi:2.12.3")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.5")
 }
 
 tasks {
     runServer {
         downloadPlugins {
             modrinth("lKEzGugV", "2.12.3")
+            modrinth("z4HZZnLr", "2.15.4")
         }
 
         minecraftVersion("26.2")

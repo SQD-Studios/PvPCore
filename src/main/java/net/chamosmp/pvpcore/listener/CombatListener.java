@@ -2,6 +2,8 @@ package net.chamosmp.pvpcore.listener;
 
 import net.chamosmp.pvpcore.PvpcorePlugin;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
+import net.chamosmp.pvpcore.manager.RegionBlockManager;
+import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import net.chamosmp.sqdlib.paper.util.DebugLogger;
 import net.chamosmp.sqdlib.util.log.LogType;
 import org.bukkit.configuration.ConfigurationSection;
@@ -19,10 +21,12 @@ public class CombatListener implements Listener {
 
     private final CombatTagManager tagManager;
     private final PvpcorePlugin plugin;
+    private final RegionBlockManager regionBlockManager;
 
-    public CombatListener(CombatTagManager tagManager, PvpcorePlugin plugin) {
+    public CombatListener(CombatTagManager tagManager, PvpcorePlugin plugin, RegionBlockManager regionBlockManager) {
         this.tagManager = tagManager;
         this.plugin = plugin;
+        this.regionBlockManager = regionBlockManager;
     }
 
     @EventHandler
@@ -32,6 +36,20 @@ public class CombatListener implements Listener {
 
     @EventHandler
     public void onPlayerWentIntoCombat(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player damager && regionBlockManager.shouldBlockPlayer(damager, damager.getLocation())) {
+            damager.sendMessage(ColorUtil.parse(
+                    plugin.getConfig().getString("safe-zones.in-safe-zone", "")
+            ));
+            event.setCancelled(true);
+            return;
+        } else if (event.getEntity() instanceof Player defender && regionBlockManager.shouldBlockPlayer(defender, defender.getLocation())) {
+            defender.sendMessage(ColorUtil.parse(
+                    plugin.getConfig().getString("safe-zones.in-safe-zone", "")
+            ));
+            event.setCancelled(true);
+            return;
+        }
+
         if (event.getDamager() instanceof Player damager && event.getEntity() instanceof Player defender
                 && tagManager.isCombatTagEnabled()) {
             tagManager.handleCombat(damager, defender);
@@ -40,11 +58,11 @@ public class CombatListener implements Listener {
 
         if (plugin.getConfig().getBoolean("stat-changer.enabled")) {
             ItemStack item = event.getDamager() instanceof LivingEntity livingEntity
-                    ? livingEntity.getEquipment().getItemInMainHand()
+                    ? livingEntity.getEquipment() != null ? livingEntity.getEquipment().getItemInMainHand() : null
                     : null;
             if (item == null) return;
 
-            Double originalDamage = event.getDamage();
+            double originalDamage = event.getDamage();
             AtomicReference<Double> damage = new AtomicReference<>(event.getDamage());
             ConfigurationSection itemHeldByEntityInConfig = plugin.getConfig().getConfigurationSection("stat-changer.items." + item.getType().toString().toLowerCase());
             if (itemHeldByEntityInConfig != null) {
