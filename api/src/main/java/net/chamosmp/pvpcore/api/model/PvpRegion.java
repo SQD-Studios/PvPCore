@@ -1,4 +1,4 @@
-package net.chamosmp.pvpcore.model;
+package net.chamosmp.pvpcore.api.model;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -8,9 +8,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jspecify.annotations.NonNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class PvpRegion implements ConfigurationSerializable {
 
@@ -74,6 +72,50 @@ public class PvpRegion implements ConfigurationSerializable {
                 new Location(world, vector1.x(), vector1.y(), vector1.z()),
                 new Location(world, vector2.x(), vector2.y(), vector2.z())
         );
+    }
+
+    public double distanceSquared(Location loc) {
+        if (loc != null && loc.getWorld() != null && loc.getWorld().getName().equals(world)) {
+            double dx = Math.max(minX - loc.getX(), Math.max(0.0F, loc.getX() - maxX));
+            double dy = Math.max(minY - loc.getY(), Math.max(0.0F, loc.getY() - maxY));
+            double dz = Math.max(minZ - loc.getZ(), Math.max(0.0F, loc.getZ() - maxZ));
+            return dx * dx + dy * dy + dz * dz;
+        } else {
+            return Double.MAX_VALUE;
+        }
+    }
+
+    public List<Location> getBorderBlocks(Location center, int radius) {
+        List<Location> blocks = new ArrayList<>();
+        World world = center.getWorld();
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+
+        for (int x = cx - radius; x <= cx + radius; ++x) {
+            for (int y = cy - radius; y <= cy + radius; ++y) {
+                for (int z = cz - radius; z <= cz + radius; ++z) {
+                    if (this.isBorderBlock(x, y, z)) {
+                        blocks.add(new Location(world, x, y, z));
+                    }
+                }
+            }
+        }
+        return blocks;
+    }
+
+    private boolean isBorderBlock(int x, int y, int z) {
+        int iminX = (int) Math.floor(this.minX);
+        int imaxX = (int) Math.floor(this.maxX);
+        int iminY = (int) Math.floor(this.minY);
+        int imaxY = (int) Math.floor(this.maxY);
+        int iminZ = (int) Math.floor(this.minZ);
+        int imaxZ = (int) Math.floor(this.maxZ);
+        if (x >= iminX && x <= imaxX && y >= iminY && y <= imaxY && z >= iminZ && z <= imaxZ) {
+            return x == iminX || x == imaxX || y == iminY || y == imaxY || z == iminZ || z == imaxZ;
+        } else {
+            return false;
+        }
     }
 
     public boolean contains(Location location) {

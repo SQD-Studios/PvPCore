@@ -1,9 +1,10 @@
 package net.chamosmp.pvpcore.commands;
 
 import net.chamosmp.pvpcore.PvpcorePlugin;
+import net.chamosmp.pvpcore.api.model.PvpRegion;
 import net.chamosmp.pvpcore.commands.suggestions.RegionSuggestion;
+import net.chamosmp.pvpcore.manager.CombatTagManager;
 import net.chamosmp.pvpcore.manager.RegionBlockManager;
-import net.chamosmp.pvpcore.model.PvpRegion;
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import net.chamosmp.sqdlib.paper.util.LoggerUtil;
 import net.chamosmp.sqdlib.util.log.LogType;
@@ -23,10 +24,12 @@ public class BaseCommand {
 
     private final PvpcorePlugin plugin;
     private final RegionBlockManager regionBlockManager;
+    private final CombatTagManager combatTagManager;
 
-    public BaseCommand(PvpcorePlugin plugin, RegionBlockManager regionBlockManager) {
+    public BaseCommand(PvpcorePlugin plugin, RegionBlockManager regionBlockManager, CombatTagManager combatTagManager) {
         this.plugin = plugin;
         this.regionBlockManager = regionBlockManager;
+        this.combatTagManager = combatTagManager;
     }
 
     @Executes("reload")
@@ -34,6 +37,24 @@ public class BaseCommand {
         plugin.reloadConfig();
         RegionBlockManager.reloadRegionsFromConfig(plugin);
         sender.sendMessage(ColorUtil.parse("<green>Successfully reloaded!"));
+    }
+
+    @Subcommand("debug")
+    public class DebugCommands {
+        @Subcommand("combattag")
+        public class CombatCommands {
+            @Executes("add")
+            public void add(CommandSender sender, Player defender, Player damager) {
+                combatTagManager.handleCombat(defender, damager);
+                sender.sendMessage(ColorUtil.parse("<green>Successfully added those 2 players in combat!"));
+            }
+
+            @Executes("remove")
+            public void remove(CommandSender sender, Player defender) {
+                combatTagManager.removeFromCombat(defender);
+                sender.sendMessage(ColorUtil.parse("<green>Successfully removed player from combat!"));
+            }
+        }
     }
 
     @Subcommand("region")

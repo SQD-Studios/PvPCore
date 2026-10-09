@@ -1,7 +1,9 @@
 package net.chamosmp.pvpcore.manager;
 
 import net.chamosmp.pvpcore.WorldEditIntegration;
-import net.chamosmp.pvpcore.model.PvpRegion;
+import net.chamosmp.pvpcore.api.model.PvpRegion;
+import net.chamosmp.pvpcore.api.services.RegionBlockService;
+import net.chamosmp.sqdlib.lang.value.DoubleValue;
 import net.chamosmp.sqdlib.paper.util.LoggerUtil;
 import net.chamosmp.sqdlib.util.log.LogType;
 import org.bukkit.Bukkit;
@@ -9,12 +11,13 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RegionBlockManager {
+public class RegionBlockManager implements RegionBlockService {
     private final CombatTagManager combatTagManager;
 
     private static final List<PvpRegion> regions = new ArrayList<>();
@@ -31,6 +34,7 @@ public class RegionBlockManager {
         }
     }
 
+    @Override
     public @Nullable WorldEditIntegration getWorldEditIntegration() {
         return worldEditIntegration;
     }
@@ -48,19 +52,25 @@ public class RegionBlockManager {
         RegionBlockManager.regions.addAll(regions);
     }
 
-    private boolean isPlayerInRegion(Location player) {
+    @Override
+    public DoubleValue<Boolean, @Nullable PvpRegion> isPlayerInRegion(@NonNull Location player) {
         for (PvpRegion region : regions) {
             if (region == null) {
                 LoggerUtil.log(LogType.WARNING, "Some of the regions in the config are null!");
                 continue;
             }
-            if (region.contains(player)) return true;
+
+            if (region.contains(player)) return new DoubleValue<>(true, region);
         }
-        return false;
+        return new DoubleValue<>(false, null);
     }
 
-    public boolean shouldBlockPlayer(Player player, Location location) {
-        return isPlayerInRegion(location) && combatTagManager.isInCombat(player);
+    @Override
+    public DoubleValue<Boolean, @Nullable PvpRegion> shouldBlockPlayer(@NonNull Player player, @NonNull Location location) {
+        return new DoubleValue<>(
+                isPlayerInRegion(location).getFirst() && combatTagManager.isInCombat(player),
+                isPlayerInRegion(location).getSecond()
+        );
     }
 
     public static boolean canAccessWe() {
@@ -70,5 +80,10 @@ public class RegionBlockManager {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public boolean canAccessWorldEdit() {
+        return canAccessWe();
     }
 }

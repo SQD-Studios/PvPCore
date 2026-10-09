@@ -2,11 +2,15 @@ package net.chamosmp.pvpcore.manager;
 
 import io.papermc.paper.util.Tick;
 import net.chamosmp.pvpcore.PvpcorePlugin;
-import net.chamosmp.pvpcore.model.TaggedPlayer;
+import net.chamosmp.pvpcore.api.event.combat.PlayerWentOutOfCombat;
+import net.chamosmp.pvpcore.api.model.TaggedPlayer;
+import net.chamosmp.pvpcore.api.services.CombatTagService;
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import net.chamosmp.sqdlib.paper.util.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -15,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CombatTagManager {
+public class CombatTagManager implements CombatTagService {
     private final PvpcorePlugin plugin;
 
     private final Map<UUID, TaggedPlayer> tags = new ConcurrentHashMap<>();
@@ -24,11 +28,15 @@ public class CombatTagManager {
         this.plugin = plugin;
     }
 
+    @Override
     public boolean isCombatTagEnabled() {
         return plugin.getConfig().getBoolean("combat-tag.enabled", false);
     }
 
-    public void handleCombat(Player player1, Player player2) {
+    @Override
+    public void handleCombat(@NonNull Player player1, @NonNull Player player2) {
+        if (!isCombatTagEnabled()) return;
+
         String message = plugin.getConfig().getString("combat-tag.combat-tagged-message");
 
         TaggedPlayer player1Tagged = tags.get(player1.getUniqueId());
@@ -58,6 +66,30 @@ public class CombatTagManager {
         }
     }
 
+    @Override
+    public void removeFromCombat(@NonNull Player player) {
+        TaggedPlayer taggedPlayer = tags.get(player.getUniqueId());
+        tags.remove(taggedPlayer.player().getUniqueId());
+
+        String notInCombat = plugin.getConfig().getString("combat-tag.combat-expired-message");
+        if (notInCombat != null) {
+            taggedPlayer.player().sendMessage(ColorUtil.parse(player, notInCombat));
+        }
+
+        PlayerWentOutOfCombat e = new PlayerWentOutOfCombat(player, taggedPlayer);
+        Bukkit.getPluginManager().callEvent(e);
+    }
+
+    @Override
+    public boolean isInCombat(@NonNull Player player) {
+        return tags.containsKey(player.getUniqueId());
+    }
+
+    @Override
+    public TaggedPlayer getTaggedPlayer(@NonNull Player player) {
+        return tags.get(player.getUniqueId());
+    }
+
     public void scheduleUpdate(Player player) {
         SchedulerUtil.runDelayed(plugin, () -> {
             TaggedPlayer taggedPlayer = tags.get(player.getUniqueId());
@@ -69,13 +101,7 @@ public class CombatTagManager {
             // If they're in combat for 0 seconds, it should remove them from the tagged people
             // and not reschedule nor send the action bar again
             if (taggedPlayer.inCombatFor() == 0) {
-                tags.remove(taggedPlayer.player().getUniqueId());
-
-                String notInCombat = plugin.getConfig().getString("combat-tag.combat-expired-message");
-                if (notInCombat != null) {
-                    taggedPlayer.player().sendMessage(ColorUtil.parse(player, notInCombat));
-                }
-
+                removeFromCombat(player);
                 return;
             }
 
@@ -90,18 +116,10 @@ public class CombatTagManager {
         }, Tick.tick().fromDuration(Duration.ofSeconds(1)));
     }
 
-    public boolean isInCombat(Player player) {
-        return tags.containsKey(player.getUniqueId());
-    }
-
-    public TaggedPlayer getTaggedPlayer(Player player) {
-        return tags.get(player.getUniqueId());
-    }
-
     public void onPlayerQuit(PlayerDeathEvent event) {
         TaggedPlayer taggedPlayer = tags.get(event.getPlayer().getUniqueId());
         if (taggedPlayer != null) {
-            tags.remove(taggedPlayer.player().getUniqueId());
+            removeFromCombat(event.getPlayer());
             for (Player player : taggedPlayer.inCombatWith()) {
                 TaggedPlayer newTaggedPlayer = tags.get(player.getUniqueId());
                 if (newTaggedPlayer != null) {

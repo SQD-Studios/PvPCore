@@ -1,11 +1,13 @@
 package net.chamosmp.pvpcore.listener;
 
 import net.chamosmp.pvpcore.PvpcorePlugin;
+import net.chamosmp.pvpcore.api.event.combat.PlayerWentIntoCombatEvent;
 import net.chamosmp.pvpcore.manager.CombatTagManager;
 import net.chamosmp.pvpcore.manager.RegionBlockManager;
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import net.chamosmp.sqdlib.paper.util.DebugLogger;
 import net.chamosmp.sqdlib.util.log.LogType;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -36,24 +38,30 @@ public class CombatListener implements Listener {
 
     @EventHandler
     public void onPlayerWentIntoCombat(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player damager && regionBlockManager.shouldBlockPlayer(damager, damager.getLocation())) {
+        // Block players from getting into combat from players into the region, and players inside to go in combat with someone outside
+        if (event.getDamager() instanceof Player damager && regionBlockManager.isPlayerInRegion(damager.getLocation()).getFirst()) {
             damager.sendMessage(ColorUtil.parse(
                     plugin.getConfig().getString("safe-zones.in-safe-zone", "")
             ));
             event.setCancelled(true);
             return;
-        } else if (event.getEntity() instanceof Player defender && regionBlockManager.shouldBlockPlayer(defender, defender.getLocation())) {
-            defender.sendMessage(ColorUtil.parse(
+        } else if (event.getEntity() instanceof Player defender && event.getDamager() instanceof Player damager && regionBlockManager.isPlayerInRegion(defender.getLocation()).getFirst()) {
+            damager.sendMessage(ColorUtil.parse(
                     plugin.getConfig().getString("safe-zones.in-safe-zone", "")
             ));
             event.setCancelled(true);
             return;
         }
 
-        if (event.getDamager() instanceof Player damager && event.getEntity() instanceof Player defender
-                && tagManager.isCombatTagEnabled()) {
-            tagManager.handleCombat(damager, defender);
-            tagManager.handleCombat(defender, damager);
+        // Combat Tag
+        if (event.getDamager() instanceof Player damager && event.getEntity() instanceof Player defender && !event.isCancelled()) {
+            PlayerWentIntoCombatEvent e = new PlayerWentIntoCombatEvent(damager, defender);
+            Bukkit.getPluginManager().callEvent(e);
+
+            if (!e.isCancelled()) {
+                tagManager.handleCombat(damager, defender);
+                tagManager.handleCombat(defender, damager);
+            }
         }
 
         if (plugin.getConfig().getBoolean("stat-changer.enabled")) {

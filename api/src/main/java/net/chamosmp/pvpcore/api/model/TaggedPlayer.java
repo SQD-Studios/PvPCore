@@ -1,4 +1,4 @@
-package net.chamosmp.pvpcore.model;
+package net.chamosmp.pvpcore.api.model;
 
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
 import org.bukkit.entity.Player;
