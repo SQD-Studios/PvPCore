@@ -1,9 +1,11 @@
 package net.chamosmp.pvpcore.listener;
 
 import net.chamosmp.pvpcore.PvpcorePlugin;
+import net.chamosmp.pvpcore.api.event.combat.PlayerWentOutOfCombat;
 import net.chamosmp.pvpcore.api.event.region.PlayerEnterRegionEvent;
 import net.chamosmp.pvpcore.api.event.region.PlayerPostBlockedFromEnteringRegion;
 import net.chamosmp.pvpcore.api.model.PvpRegion;
+import net.chamosmp.pvpcore.manager.CombatTagManager;
 import net.chamosmp.pvpcore.manager.RegionBlockManager;
 import net.chamosmp.sqdlib.lang.value.DoubleValue;
 import net.chamosmp.sqdlib.paper.util.ColorUtil;
@@ -18,13 +20,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class RegionEnterListener implements Listener {
     private final RegionBlockManager regionBlockManager;
     private final PvpcorePlugin plugin;
+    private final CombatTagManager combatTagManager;
 
-    public RegionEnterListener(RegionBlockManager regionBlockManager, PvpcorePlugin plugin) {
+    public RegionEnterListener(RegionBlockManager regionBlockManager, PvpcorePlugin plugin, CombatTagManager combatTagManager) {
         this.regionBlockManager = regionBlockManager;
         this.plugin = plugin;
+        this.combatTagManager = combatTagManager;
     }
 
     @EventHandler
@@ -32,6 +40,9 @@ public class RegionEnterListener implements Listener {
         if (!RegionBlockManager.canAccessWe()) return;
 
         Player player = event.getPlayer();
+
+
+        updateBarriers(player, event.getTo());
 
         DoubleValue<Boolean, PvpRegion> isPlayerRegion = regionBlockManager.isPlayerInRegion(player.getLocation());
         if (isPlayerRegion.getFirst()) {
@@ -50,7 +61,6 @@ public class RegionEnterListener implements Listener {
             event.setCancelled(true);
 
             pushBack(player, event.getTo(), event.getFrom());
-            showBarriers(player, playerRegion.getSecond());
 
             PlayerPostBlockedFromEnteringRegion e = new PlayerPostBlockedFromEnteringRegion(player, playerRegion.getSecond());
             Bukkit.getPluginManager().callEvent(e);
@@ -58,21 +68,36 @@ public class RegionEnterListener implements Listener {
     }
 
     private void pushBack(Player player, Location from, Location to) {
-        double distance = plugin.getConfig().getDouble("safe-zones.knockback", 50.0F);
-        Vector direction = from.toVector().subtract(to.toVector());
+        double strength = plugin.getConfig().getDouble("safe-zones.knockback", 1.0);
 
-        if (direction.lengthSquared() > (double) 0.0F) {
-            direction = direction.normalize();
-        } else {
-            direction = player.getLocation().getDirection().multiply(-1).normalize();
+        double directionX = from.getX() - to.getX();
+        double directionZ = from.getZ() - to.getZ();
+
+        if (directionX == 0.0 && directionZ == 0.0) {
+            Vector look = player.getLocation().getDirection().multiply(-1);
+            directionX = look.getX();
+            directionZ = look.getZ();
         }
 
-        direction.multiply(distance);
-        direction.setY((double) 0.5F);
-        player.setVelocity(direction);
+        player.knockback(strength, directionX, directionZ);
     }
 
-    private void showBarriers(Player player, PvpRegion region) {
+    @EventHandler
+    public void playerCombatExpire(PlayerWentOutOfCombat event) {
+        updateBarriers(event.getPlayer(), event.getPlayer().getLocation());
+    }
+
+    private static final Map<Player, List<Location>> activeBarriers = new ConcurrentHashMap<>();
+
+    private void updateBarriers(Player player, Location to) {
+        if (!combatTagManager.isInCombat(player)) {
+            clearBarriers(player);
+            return;
+        }
+
+        PvpRegion region = regionBlockManager.isPlayerInRegion(to).getSecond();
+        if (region == null) return;
+
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("safe-zones.block-change");
         if (section == null) return;
         if (!section.getBoolean("enabled")) return;
@@ -83,9 +108,23 @@ public class RegionEnterListener implements Listener {
         if (material == null) return;
 
         Location pLoc = player.getLocation();
-        if (!(region.distanceSquared(pLoc) > (double) 25.0F)) {
-            for (Location location : region.getBorderBlocks(pLoc, radius)) {
+
+        if (!(region.distanceSquared(pLoc) > 25.0)) {
+            List<Location> set = region.getBorderBlocks(pLoc, radius);
+            activeBarriers.put(player, set);
+            for (Location location : set) {
                 player.sendBlockChange(location, material.createBlockData());
+            }
+        } else {
+            clearBarriers(player);
+        }
+    }
+
+    public void clearBarriers(Player player) {
+        List<Location> oldBarriers = activeBarriers.remove(player);
+        if (oldBarriers != null) {
+            for (Location loc : oldBarriers) {
+                player.sendBlockChange(loc, loc.getBlock().getBlockData());
             }
         }
     }

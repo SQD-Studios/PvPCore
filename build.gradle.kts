@@ -44,7 +44,7 @@ tasks {
     runServer {
         downloadPlugins {
             modrinth("lKEzGugV", "2.12.3")
-            modrinth("z4HZZnLr", "2.15.4")
+            modrinth("z4HZZnLr", "2.16.1")
         }
 
         minecraftVersion("26.2")

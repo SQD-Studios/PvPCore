@@ -74,8 +74,8 @@ public class PvpRegion implements ConfigurationSerializable {
         );
     }
 
-    public double distanceSquared(Location loc) {
-        if (loc != null && loc.getWorld() != null && loc.getWorld().getName().equals(world)) {
+    public double distanceSquared(@NonNull Location loc) {
+        if (loc.getWorld() != null && loc.getWorld().getName().equals(world)) {
             double dx = Math.max(minX - loc.getX(), Math.max(0.0F, loc.getX() - maxX));
             double dy = Math.max(minY - loc.getY(), Math.max(0.0F, loc.getY() - maxY));
             double dz = Math.max(minZ - loc.getZ(), Math.max(0.0F, loc.getZ() - maxZ));

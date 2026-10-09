@@ -52,7 +52,7 @@ public class PvpcorePlugin extends JavaPlugin implements PvpCoreApi {
         Bukkit.getPluginManager().registerEvents(new CombatListener(combatTagManager, this, regionBlockManager), this);
         Bukkit.getPluginManager().registerEvents(new LeaveJoinListener(combatTagManager, this), this);
         Bukkit.getPluginManager().registerEvents(new ExplodeListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new RegionEnterListener(regionBlockManager, this), this);
+        Bukkit.getPluginManager().registerEvents(new RegionEnterListener(regionBlockManager, this, combatTagManager), this);
         LoggerUtil.log(LogType.INFO, "Registered listeners");
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) { //
